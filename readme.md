@@ -5,8 +5,8 @@ Raid mark targeting and assigning addon for the vanilla wow client.
 Short answer: ***enable nameplates and mod your client to increase nameplate range.***
 
 Raid mark targeting is attempted through two methods:
-*unitid scan*: the addon scans raid/party members, their targets, pets, pet targets, etc., to try to find the marked unit. This method depends on the the unit either being a member of your group or being targeted by someone in it. 
-*nameplate scan*: if the unitid method fails **and there are nameplates visible on your screen**, the addon will scan through those nameplates to try to find the marked target.
+- *unitid scan*: the addon scans raid/party members, their targets, pets, pet targets, etc., to try to find the marked unit. This method depends on the the unit either being a member of your group or being targeted by someone in it. 
+- *nameplate scan*: if the unitid method fails **and there are nameplates visible on your screen**, the addon will scan through those nameplates to try to find the marked target.
 
 ***nameplates must be enabled and on screen for the addon to be able to scan them***
 
@@ -67,7 +67,7 @@ keys can be bound to target specific raid marks in the key binding menu, under t
 
 ## Targeting Tray UI
 The addon adds a list of raid icons to the user interface:
-Left click an icon to try to target the corresponding mark.
-Move the tray by holding left click on any icon and dragging the mouse.
-use `/sraidmarks` to configure the UI. From here you can resize the icons, lock it in place or hide it.
-If you drag the tray off your screen, run `/sraidmarks reset`.
+- Click an icon to try to target the corresponding mark.
+- Move the tray by holding left click on any icon and dragging the mouse.
+- Use `/sraidmarks` to configure the UI. From here you can resize the icons, lock it in place or hide it.
+- If you drag the tray off your screen, run `/sraidmarks reset`.

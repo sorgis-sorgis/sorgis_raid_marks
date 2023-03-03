@@ -1,0 +1,10 @@
+<Bindings>
+    <Binding name="TRY_TARGET_STAR" runOnUp="true" header="SORGIS_RAID_MARKS"> SorgisRaidMarks_TryTargetMark("star") </Binding>
+    <Binding name="TRY_TARGET_CIRCLE" runOnUp="true"> SorgisRaidMarks_TryTargetMark("circle") </Binding>
+    <Binding name="TRY_TARGET_DIAMOND" runOnUp="true"> SorgisRaidMarks_TryTargetMark("diamond") </Binding>
+    <Binding name="TRY_TARGET_TRIANGLE" runOnUp="true"> SorgisRaidMarks_TryTargetMark("triangle") </Binding>
+    <Binding name="TRY_TARGET_MOON" runOnUp="true"> SorgisRaidMarks_TryTargetMark("moon") </Binding>
+    <Binding name="TRY_TARGET_SQUARE" runOnUp="true"> SorgisRaidMarks_TryTargetMark("square") </Binding>
+    <Binding name="TRY_TARGET_CROSS" runOnUp="true"> SorgisRaidMarks_TryTargetMark("cross") </Binding>
+    <Binding name="TRY_TARGET_SKULL" runOnUp="true"> SorgisRaidMarks_TryTargetMark("skull") </Binding>
+</Bindings>
