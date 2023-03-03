@@ -108,7 +108,7 @@ do
         return units
     end)()
 
-    srm.tryTargetUnitWithRaidMarkFromGroupMembers = function(aMark, oRequirementsFunctor)
+    srm.tryTargetUnitWithRaidMarkFromGroupMembers = function(aMark)
         for _, aUnitID in pairs(PLAYER_UNIT_IDS) do
             if srm.unitHasRaidMark(aUnitID, aMark) and srm.unitIsAlive(aUnitID) then
                 TargetUnit(aUnitID)   
