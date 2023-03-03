@@ -401,7 +401,10 @@ do
                 gui.setScale(sorgis_raid_marks.scale or 32)
                 gui.setVisibility(sorgis_raid_marks.visibility == nil or sorgis_raid_marks.visibility)
                 gui.setMovable(sorgis_raid_marks.locked ~= true)
-                gui.setPosition(unpack(sorgis_raid_marks.position))
+
+                if type(sorgis_raid_marks.position[1]) == "number" then
+                    gui.setPosition(unpack(sorgis_raid_marks.position))
+                end
 
             elseif event == "PLAYER_LOGOUT" then
                 sorgis_raid_marks.position = {gui.getPosition()}
@@ -456,11 +459,6 @@ do
             "resize the tray if given a number. Prints the current scale value if no number provided", 
             function(aScale)
                 if aScale then
-                    --[[if type(aScale) ~= "number" then
-                        srm.error("scale expected to be a number")
-                        return
-                    end]]
-
                     gui.setScale(tonumber(aScale)) 
                 end
 
