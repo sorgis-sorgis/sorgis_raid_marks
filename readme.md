@@ -57,17 +57,17 @@ examples:
 Mark the player's target with star and shackle it.
 
 ```
-/tar jed
-/setmark square
+/trytargetmark cross
 ```
-marks Jed with square if you've found a UBRS ID with him in it.
+Attempts to target the mark and begins an auto attack
 
 ## Bindings
 keys can be bound to target specific raid marks in the key binding menu, under the Sorgis Raid Marks heading.
 
 ## Targeting Tray UI
 The addon adds a list of raid icons to the user interface:
-- Click an icon to try to target the corresponding mark.
+- Left click an icon to try to target the corresponding mark.
+- Right click an icon to try to target and auto attack the mark.
 - Move the tray by holding left click on any icon and dragging the mouse.
 - Use `/sraidmarks` to configure the UI. From here you can resize the icons, lock it in place or hide it.
 - If you drag the tray off your screen, run `/sraidmarks reset`.

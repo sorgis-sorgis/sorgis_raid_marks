@@ -78,6 +78,20 @@ srm.playerIsInParty = function()
     return not srm.playerIsInRaid() and GetNumPartyMembers() ~= 0
 end
 
+srm.startAttack = function()
+    for slotIDIndex = 1, 108 do 
+        if IsAttackAction(slotIDIndex) then
+            if not IsCurrentAction(slotIDIndex) then 
+                UseAction(slotIDIndex)
+            end
+            
+            return
+        end
+    end
+
+    srm.error("sorgis_raid_marks startAttack requires the attack ability to be somewhere in the actionbars")
+end
+
 do
     local PLAYER_UNIT_IDS = {
         [0] = "player",
@@ -213,6 +227,15 @@ srm.tryTargetMark = function(aRaidMark)
         srm.tryTargetRaidMarkInNamePlates(aRaidMark)
 end
 
+srm.tryAttackMark = function(aRaidMark)
+    if srm.tryTargetMark(aRaidMark) then
+        srm.startAttack()
+        return true
+    end
+
+    return false
+end
+
 ---------------------
 -- BINDINGS
 ---------------------
@@ -236,6 +259,12 @@ srm.makeSlashCommand("trytargetmark", function(msg)
     msg = string.lower(msg)
 
     srm.tryTargetMark(msg)
+end)
+
+srm.makeSlashCommand("tryattackmark", function(msg)
+    msg = string.lower(msg)
+
+    srm.tryAttackMark(msg)
 end)
 
 srm.makeSlashCommand("setmark", function(msg)
@@ -264,7 +293,7 @@ do
         local makeRaidMarkFrame = function(aX, aY, aMark)
             local SIZE = 32
 
-            local frame = CreateFrame("FRAME", nil, rootFrame)
+            local frame = CreateFrame("Button", nil, rootFrame)
             frame:SetFrameStrata("BACKGROUND")
             frame:SetWidth(SIZE) 
             frame:SetHeight(SIZE)
@@ -273,11 +302,14 @@ do
 
             do
                 frame:EnableMouse(true)
-                local clickBehaviour = function()
-                    srm.tryTargetMark(aMark)
-                end
-                frame:SetScript("OnMouseDown", clickBehaviour)
-                frame:SetScript("OnMouseUp", clickBehaviour)
+                frame:RegisterForClicks("LeftButtonDown", "LeftButtonUp", "RightButtonDown", "RightButtonUp")
+                frame:SetScript("OnClick", function()
+                    if arg1 == "LeftButton" then
+                        srm.tryTargetMark(aMark)
+                    elseif arg1 == "RightButton" then
+                        srm.tryAttackMark(aMark)
+                    end
+                end)
             end
 
             frame:RegisterForDrag("LeftButton")
