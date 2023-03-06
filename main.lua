@@ -305,7 +305,11 @@ do
                 frame:RegisterForClicks("LeftButtonDown", "LeftButtonUp", "RightButtonDown", "RightButtonUp")
                 frame:SetScript("OnClick", function()
                     if arg1 == "LeftButton" then
-                        srm.tryTargetMark(aMark)
+                        if IsControlKeyDown() then
+                            srm.markUnitWithRaidMark(aMark)
+                        else
+                            srm.tryTargetMark(aMark)
+                        end
                     elseif arg1 == "RightButton" then
                         srm.tryAttackMark(aMark)
                     end
