@@ -96,8 +96,10 @@ do
     local PLAYER_UNIT_IDS = {
         [0] = "player",
         [1] = "target",
-        [2] = "pet",
-        [3] = "pettarget",
+        [2] = "targettarget",
+        [3] = "pet",
+        [4] = "pettarget",
+        [5] = "pettargettarget",
     }
 
     local RAID_UNIT_IDS = (function()
@@ -105,8 +107,10 @@ do
         
         for i = 1, 40 do table.insert(units, "raid" .. i) end
         for i = 1, 40 do table.insert(units, "raid" .. i .. "target") end
+        for i = 1, 40 do table.insert(units, "raid" .. i .. "targettarget") end
         for i = 1, 40 do table.insert(units, "raidpet" .. i) end
         for i = 1, 40 do table.insert(units, "raidpet" .. i .. "target") end
+        for i = 1, 40 do table.insert(units, "raidpet" .. i .. "targettarget") end
 
         return units
     end)()
@@ -116,8 +120,10 @@ do
 
         for i = 1, 5 do table.insert(units, "party" .. i) end
         for i = 1, 5 do table.insert(units, "party" .. i .. "target") end
+        for i = 1, 5 do table.insert(units, "party" .. i .. "targettarget") end
         for i = 1, 5 do table.insert(units, "partypet" .. i) end
         for i = 1, 5 do table.insert(units, "partypet" .. i .. "target") end
+        for i = 1, 5 do table.insert(units, "partypet" .. i .. "targettarget") end
         
         return units
     end)()
