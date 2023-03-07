@@ -32,11 +32,15 @@ srm.makeSlashCommand = function(aName, aBehaviour)
     SlashCmdList[nameUpperCase] = aBehaviour
 end
 
-srm.unitIsAlive = function(aUnit)
-    return UnitIsDead(aUnit) == nil
+srm.unitIsAlive = function(aUnitID)
+    return UnitIsDead(aUnitID) == nil
 end
 
-srm.unitHasRaidMark = function(aUnit, aMark)
+srm.unitExists = function(aUnitID) 
+    return UnitExists(aUnitID) ~= nil 
+end
+
+srm.unitHasRaidMark = function(aUnitID, aMark)
     local unitMark = ({
         [1] = "star",
         [2] = "circle",
@@ -46,13 +50,15 @@ srm.unitHasRaidMark = function(aUnit, aMark)
         [6] = "square",
         [7] = "cross",
         [8] = "skull",
-    })[GetRaidTargetIndex(aUnit)] or nil
+    })[GetRaidTargetIndex(aUnitID)] or nil
 
     return aMark == unitMark
 end
 
 srm.markUnitWithRaidMark = function(aMark, aUnitID)
     aUnitID = aUnitID or "target"
+
+    if not srm.unitExists(aUnitID) then return end
 
     local markIndex = ({
         ["star"] = 1,
@@ -355,7 +361,7 @@ do
             }
             raidMarkTexture:SetTexCoord(unpack(markNameToTextCoords[aMark]))
 
-            return {
+            local raidMark = {
                 ["setScale"] = function(aScale)
                     frame:SetWidth(aScale) 
                     frame:SetHeight(aScale)
@@ -367,6 +373,8 @@ do
                     return frame:GetWidth()
                 end,
             }
+
+            return raidMark
         end
 
         local trayButtons = {}
