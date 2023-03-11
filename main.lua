@@ -90,7 +90,7 @@ do
         local attackSlotIndex
         getAttackSlotIndex = function()
             if attackSlotIndex == nil then
-                for slotIndex = 1, 108 do 
+                for slotIndex = 1, 120 do 
                     if IsAttackAction(slotIndex) then
                         attackSlotIndex = slotIndex
                         break
