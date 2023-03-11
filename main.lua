@@ -84,28 +84,56 @@ srm.playerIsInParty = function()
     return not srm.playerIsInRaid() and GetNumPartyMembers() ~= 0
 end
 
-srm.startAttack = function()
-    for slotIDIndex = 1, 108 do 
-        if IsAttackAction(slotIDIndex) then
-            if not IsCurrentAction(slotIDIndex) then 
-                UseAction(slotIDIndex)
+do
+    local getAttackSlotIndex
+    do
+        local attackSlotIndex
+        getAttackSlotIndex = function()
+            if attackSlotIndex == nil then
+                for slotIndex = 1, 108 do 
+                    if IsAttackAction(slotIndex) then
+                        attackSlotIndex = slotIndex
+                        break
+                    end
+                end
             end
-            
-            return
+
+            return attackSlotIndex
         end
+
+        local frame = CreateFrame("FRAME")
+        frame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+        frame:SetScript("OnEvent", function()
+            if event == "ACTIONBAR_SLOT_CHANGED" then
+                attackSlotIndex = nil
+            end
+        end)
     end
 
-    srm.error("sorgis_raid_marks startAttack requires the attack ability to be somewhere in the actionbars")
+    srm.startAttack = function()
+        local attackSlotIndex = getAttackSlotIndex()
+
+        if not attackSlotIndex then 
+            srm.error("sorgis_raid_marks startAttack requires the attack ability to be somewhere in the actionbars") 
+            return
+        end
+
+        if not IsCurrentAction(attackSlotIndex) then 
+            UseAction(attackSlotIndex)
+        end
+    end
 end
 
 do
     local PLAYER_UNIT_IDS = {
-        [0] = "player",
-        [1] = "target",
-        [2] = "targettarget",
-        [3] = "pet",
-        [4] = "pettarget",
-        [5] = "pettargettarget",
+        [1] = "player",
+        [2] = "target",
+        [3] = "targettarget",
+        [4] = "mouseover",
+        [5] = "mouseovertarget",
+        [6] = "pet",
+        [7] = "pettarget",
+        [8] = "pettargettarget",
     }
 
     local RAID_UNIT_IDS = (function()
@@ -134,23 +162,26 @@ do
         return units
     end)()
 
-    srm.tryTargetUnitWithRaidMarkFromGroupMembers = function(aMark)
+    srm.visitUnitIDs = function(aVisitor)
         for _, aUnitID in pairs(PLAYER_UNIT_IDS) do
-            if srm.unitHasRaidMark(aUnitID, aMark) and srm.unitIsAlive(aUnitID) then
-                TargetUnit(aUnitID)   
-                return true
-            end
+            if aVisitor(aUnitID) == true then return true end
         end
 
         for _, aUnitID in pairs(srm.playerIsInRaid() and RAID_UNIT_IDS or 
             srm.playerIsInParty() and PARTY_UNIT_IDS or {}) do
+            if aVisitor(aUnitID) == true then return true end
+        end
+
+        return false
+    end
+
+    srm.tryTargetUnitWithRaidMarkFromGroupMembers = function(aMark)
+        return srm.visitUnitIDs(function(aUnitID)
             if srm.unitHasRaidMark(aUnitID, aMark) and srm.unitIsAlive(aUnitID) then
                 TargetUnit(aUnitID)   
                 return true
             end
-        end
-
-        return false
+        end)
     end
 end
 
