@@ -1,5 +1,5 @@
 --[[
-    written by sorgis. currently playing on the turtle wow server. 2023
+    written by sorgis, turtle wow server, 2023
     https://github.com/sorgis-sorgis/sorgis_raid_marks
 ]]
 
@@ -359,6 +359,8 @@ do
                 end)
             end
 
+            local raidMark = {}
+
             frame:RegisterForDrag("LeftButton")
             frame:SetMovable(true)
             frame:SetScript("OnDragStart", function()
@@ -372,6 +374,8 @@ do
                 end
 
                 rootFrame:StopMovingOrSizing()
+
+                raidMark.onDragStop()
             end)
 
             local raidMarkTexture = frame:CreateTexture(nil, "OVERLAY")
@@ -392,18 +396,17 @@ do
             }
             raidMarkTexture:SetTexCoord(unpack(markNameToTextCoords[aMark]))
 
-            local raidMark = {
-                ["setScale"] = function(aScale)
-                    frame:SetWidth(aScale) 
-                    frame:SetHeight(aScale)
-                    frame:SetPoint("CENTER", aX * aScale, aY * aScale)
-                    raidMarkTexture:SetWidth(aScale)
-                    raidMarkTexture:SetHeight(aScale)
-                end,
-                ["getScale"] = function(aScale)
-                    return frame:GetWidth()
-                end,
-            }
+            raidMark.setScale = function(aScale)
+                frame:SetWidth(aScale) 
+                frame:SetHeight(aScale)
+                frame:SetPoint("CENTER", aX * aScale, aY * aScale)
+                raidMarkTexture:SetWidth(aScale)
+                raidMarkTexture:SetHeight(aScale)
+            end
+            raidMark.getScale = function(aScale)
+                return frame:GetWidth()
+            end
+            raidMark.onDragStop = function() end
 
             return raidMark
         end
@@ -418,47 +421,67 @@ do
         table.insert(trayButtons, makeRaidMarkFrame(6,0, "cross"))
         table.insert(trayButtons, makeRaidMarkFrame(7,0, "skull"))
 
-        local gui = {
-            ["setScale"] = function(aScale)
-                for _, button in pairs(trayButtons) do
-                    button.setScale(aScale)
-                end
-            end,
-            ["getScale"] = function()
-                return trayButtons[1].getScale()
-            end,
-            ["setVisibility"] = function(aVisibility)
-                if aVisibility then
-                    rootFrame:Show()
-                else
-                    rootFrame:Hide()
-                end
-            end,
-            ["getVisibility"] = function()
-                return rootFrame:IsVisible() ~= nil
-            end,
-            ["lock"] = function()
-                rootFrame:SetMovable(false)
-                rootFrame:StopMovingOrSizing()
-            end,
-            ["unlock"] = function()
-                rootFrame:SetMovable(true)
-            end,
-            ["setMovable"] = function(aMovable)
-                rootFrame:SetMovable(aMovable)
-            end,
-            ["getMovable"] = function()
-                return rootFrame:IsMovable() ~= nil
-            end,
-            ["getPosition"] = function()
-                local a, b, c, x, y = rootFrame:GetPoint()
-                
-                return x, y
-            end,
-            ["setPosition"] = function(x, y)
-                rootFrame:SetPoint("TOPLEFT", x, y)
-            end,
-        }
+        local gui = {}
+
+        gui.getScale = function()
+            return trayButtons[1].getScale()
+        end
+        gui.setScale = function(aScale)
+            for _, button in pairs(trayButtons) do
+                button.setScale(aScale)
+            end
+
+            sorgis_raid_marks.scale = gui.getScale()
+        end
+
+        gui.getVisibility = function()
+            return rootFrame:IsVisible() ~= nil
+        end
+        gui.setVisibility = function(aVisibility)
+            if aVisibility then
+                rootFrame:Show()
+            else
+                rootFrame:Hide()
+            end
+
+            sorgis_raid_marks.visibility = gui.getVisibility()
+        end
+
+        gui.lock = function()
+            rootFrame:SetMovable(false)
+            rootFrame:StopMovingOrSizing()
+
+            sorgis_raid_marks.locked = gui.getMovable() ~= true
+        end
+        gui.unlock = function()
+            rootFrame:SetMovable(true)
+
+            sorgis_raid_marks.locked = gui.getMovable() ~= true
+        end
+
+        gui.getMovable = function()
+            return rootFrame:IsMovable() ~= nil
+        end
+        gui.setMovable = function(aMovable)
+            rootFrame:SetMovable(aMovable)
+        end
+
+        gui.getPosition = function()
+            local a, b, c, x, y = rootFrame:GetPoint()
+            
+            return x, y
+        end
+        gui.setPosition = function(x, y)
+            rootFrame:SetPoint("TOPLEFT", x, y)
+
+            sorgis_raid_marks.position = {gui.getPosition()} 
+        end
+        for _, button in pairs(trayButtons) do
+            button.onDragStop = function()
+                sorgis_raid_marks.position = {gui.getPosition()} 
+            end
+        end
+
         gui.reset = function()
             gui.setMovable(true)
             gui.setVisibility(true)
@@ -466,14 +489,10 @@ do
        
             w = rootFrame:GetParent():GetWidth()
             h = rootFrame:GetParent():GetHeight()
- 
             gui.setPosition(w/2,h/2*-1)
         end
 
-        gui.reset()
-
         rootFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-        rootFrame:RegisterEvent("PLAYER_LOGOUT")
         rootFrame:SetScript("OnEvent", function()
             if event == "PLAYER_ENTERING_WORLD" then
                 sorgis_raid_marks = sorgis_raid_marks or {}
@@ -485,13 +504,11 @@ do
 
                 if type(sorgis_raid_marks.position[1]) == "number" then
                     gui.setPosition(unpack(sorgis_raid_marks.position))
+                else
+                    w = rootFrame:GetParent():GetWidth()
+                    h = rootFrame:GetParent():GetHeight()
+                    gui.setPosition(w/2,h/2*-1)
                 end
-
-            elseif event == "PLAYER_LOGOUT" then
-                sorgis_raid_marks.position = {gui.getPosition()}
-                sorgis_raid_marks.scale = gui.getScale()
-                sorgis_raid_marks.visibility = gui.getVisibility()
-                sorgis_raid_marks.locked = gui.getMovable() ~= true
             end
         end)
 
