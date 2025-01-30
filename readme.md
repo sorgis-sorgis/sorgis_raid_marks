@@ -61,6 +61,17 @@ Mark the player's target with star and shackle it.
 ```
 Attempts to target the mark and begins an auto attack
 
+### clear mark
+`/clearmark`
+removes the raid mark assigned to the player's target
+ 
+`/clearmark {unitid}`
+removes the raid mark assigned to a unit by *unitid*
+
+### clear all marks
+`clearallmarks`
+unassigns all raid marks
+
 ## Bindings
 keys can be bound to target specific raid marks in the key binding menu, under the Sorgis Raid Marks heading.
 
