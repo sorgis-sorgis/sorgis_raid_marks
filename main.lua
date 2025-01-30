@@ -1,16 +1,15 @@
 --[[
-    written by sorgis, turtle wow server, 2023
+    written by sorgis, intially released in 2023
     https://github.com/sorgis-sorgis/sorgis_raid_marks
 ]]
 
 ---------------------
 -- IMPLEMENTATION
 ---------------------
-local _G = _G or getfenv(0)
-local srm = _G.srm or {}
+local srm = {}
 
 do
-    local make_logger = function(r, g, b)
+    local makeLogger = function(r, g, b)
         return function(...)
             local msg = ""
             for i, v in ipairs(arg) do
@@ -21,14 +20,14 @@ do
         end
     end
 
-    srm.log = make_logger(1, 1, 0.5)
-    srm.error = make_logger(1, 0, 0)
+    srm.log = makeLogger(1, 1, 0.5)
+    srm.print = makeLogger(1, 1, 0.5)
+    srm.error = makeLogger(1, 0, 0)
 end
 
 srm.makeSlashCommand = function(aName, aBehaviour)
-    local _G = _G or getfenv(0)
     local nameUpperCase = string.upper(aName)
-    _G["SLASH_" .. nameUpperCase .. 1] = "/" .. aName
+    getfenv(0)["SLASH_" .. nameUpperCase .. 1] = "/" .. aName
     SlashCmdList[nameUpperCase] = aBehaviour
 end
 
@@ -38,6 +37,12 @@ end
 
 srm.unitExists = function(aUnitID) 
     return UnitExists(aUnitID) ~= nil 
+end
+
+srm.playerIsLeadOrAssist = function()
+    return IsRaidLeader() == 1 
+        or IsRaidOfficer() == 1 
+        or IsPartyLeader() == 1
 end
 
 srm.unitHasRaidMark = function(aUnitID, aMark)
@@ -74,6 +79,34 @@ srm.markUnitWithRaidMark = function(aMark, aUnitID)
     if markIndex == nil then return end
 
     SetRaidTarget(aUnitID, markIndex) 
+end
+
+srm.clearMarkFromUnit = function(aUnitID)
+    SetRaidTarget(aUnitID, 0)
+end
+
+do
+    local frame = CreateFrame("FRAME")
+    
+    srm.clearAllMarks = function()
+        if not srm.playerIsLeadOrAssist() then return end
+
+        for i = 1, 8 do
+            SetRaidTarget("player", i)
+        end
+   
+        -- we must check until the server applies the final raid mark in order to remove it
+        frame:SetScript("OnUpdate", function()
+            if GetRaidTargetIndex("player") ~= 8
+                and srm.playerIsLeadOrAssist() 
+            then 
+                return 
+            end
+
+            srm.clearMarkFromUnit("player")
+            frame:SetScript("OnUpdate", nil)
+        end)
+    end
 end
 
 srm.playerIsInRaid = function()
@@ -114,7 +147,7 @@ do
         local attackSlotIndex = getAttackSlotIndex()
 
         if not attackSlotIndex then 
-            srm.error("sorgis_raid_marks startAttack requires the attack ability to be somewhere in the actionbars") 
+            srm.error("sorgis_raid_marks startAttack feature requires the attack ability to be somewhere in your actionbars") 
             return
         end
 
@@ -296,7 +329,7 @@ SorgisRaidMarks_TryTargetMark = function(aMark)
 end
 
 -----------------------
--- MACRO SLASH COMMANDS
+-- SLASH COMMANDS
 -----------------------
 srm.makeSlashCommand("trytargetmark", function(msg)
     msg = string.lower(msg)
@@ -312,11 +345,21 @@ end)
 
 srm.makeSlashCommand("setmark", function(msg)
     local matches = string.gfind(msg, "\(%w+\)")
-
     local mark = matches()
     local unitID = matches()
 
     srm.markUnitWithRaidMark(mark, unitID)
+end)
+
+srm.makeSlashCommand("clearmark", function(msg)
+    local matches = string.gfind(msg, "\(%w+\)")
+    local unitID = matches() or "target"
+
+    srm.clearMarkFromUnit(unitID)
+end)
+
+srm.makeSlashCommand("clearallmarks", function()
+    srm.clearAllMarks()
 end)
 
 --------------------
@@ -344,12 +387,20 @@ do
             frame:Show() 
 
             do
+                local buttonFrameIsDown = function(aButtonFrame)
+                    return aButtonFrame:GetButtonState() == "PUSHED"
+                end
+
                 frame:EnableMouse(true)
                 frame:RegisterForClicks("LeftButtonDown", "LeftButtonUp", "RightButtonDown", "RightButtonUp")
-                frame:SetScript("OnClick", function()
-                    if arg1 == "LeftButton" then
+                frame:SetScript("OnClick", function(a,b,c)
+                    if arg1 == "LeftButton" and buttonFrameIsDown(frame) then
                         if IsControlKeyDown() then
-                            srm.markUnitWithRaidMark(aMark)
+                            if srm.unitHasRaidMark("target", aMark) then
+                                srm.clearMarkFromUnit("target")
+                            else
+                                srm.markUnitWithRaidMark(aMark)
+                            end
                         else
                             srm.tryTargetMark(aMark)
                         end
@@ -370,7 +421,7 @@ do
             end)
             frame:SetScript("OnDragStop", function()
                 if rootFrame:IsMovable() then
-                    srm.log("raidtray moved. type `", _G.SLASH_SRAIDMARKS1, "` to lock or hide")
+                    srm.print("raidtray moved. type `", _G.SLASH_SRAIDMARKS1, "` to lock or hide")
                 end
 
                 rootFrame:StopMovingOrSizing()
@@ -523,28 +574,28 @@ do
             "prevent the tray from being dragged by the mouse",
             function()
                 gui.lock()
-                srm.log("tray locked")
+                srm.print("tray locked")
             end
         },
         ["unlock"] = {
             "allows the tray to be dragged by the mouse",
             function()
                 gui.unlock()
-                srm.log("tray unlocked")
+                srm.print("tray unlocked")
             end
         },
         ["hide"] = {
             "hides the tray",
             function()
                 gui.setVisibility(false)
-                srm.log("tray hidden")
+                srm.print("tray hidden")
             end
         },
         ["show"] = {
             "shows the tray",
             function()
                 gui.setVisibility(true)
-                srm.log("tray shown")
+                srm.print("tray shown")
             end
         },
         ["reset"] = {
@@ -560,7 +611,7 @@ do
                     gui.setScale(tonumber(aScale)) 
                 end
 
-                srm.log("scale is: ", gui.getScale())
+                srm.print("scale is: ", gui.getScale())
             end
         },
     }
@@ -581,7 +632,7 @@ do
                 "` : " .. value[1] .. "\n"
             end 
 
-            srm.log(commandsString)
+            srm.print(commandsString)
         end)(unpack(arg))
     end)
 end
