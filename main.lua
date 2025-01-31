@@ -420,14 +420,15 @@ do
         rootFrame:SetPoint("TOPLEFT", 0,0)
         rootFrame:SetMovable(true)
 
-        local makeRaidMarkFrame = function(aX, aY, aMark)
+        local makeRaidMarkFrame = function(aMark)
+            local mX = 0
+            local mY = 0
             local SIZE = 32
 
             local frame = CreateFrame("Button", nil, rootFrame)
             frame:SetFrameStrata("BACKGROUND")
             frame:SetWidth(SIZE) 
             frame:SetHeight(SIZE)
-            frame:SetPoint("CENTER", aX * SIZE, aY * SIZE)
             frame:Show() 
 
             do
@@ -520,7 +521,7 @@ do
             raidMark.setScale = function(aScale)
                 frame:SetWidth(aScale) 
                 frame:SetHeight(aScale)
-                frame:SetPoint("CENTER", aX * aScale, aY * aScale)
+                frame:SetPoint("CENTER", mX * aScale, mY * aScale)
 
                 raidMarkTexture:SetWidth(aScale)
                 raidMarkTexture:SetHeight(aScale)
@@ -531,25 +532,51 @@ do
             raidMark.getScale = function(aScale)
                 return frame:GetWidth()
             end
+
+            raidMark.setPosition = function(aX, aY)
+                mX = aX
+                mY = aY
+
+                raidMark.setScale(raidMark.getScale())
+            end
+
+            raidMark.getPosition = function()
+                return mX, mY
+            end
+
             raidMark.onDragStop = function() end
 
             return raidMark
         end
 
         local trayButtons = {}
-        table.insert(trayButtons, makeRaidMarkFrame(0,0, "star"))
-        table.insert(trayButtons, makeRaidMarkFrame(1,0, "circle"))
-        table.insert(trayButtons, makeRaidMarkFrame(2,0, "diamond"))
-        table.insert(trayButtons, makeRaidMarkFrame(3,0, "triangle"))
-        table.insert(trayButtons, makeRaidMarkFrame(4,0, "moon"))
-        table.insert(trayButtons, makeRaidMarkFrame(5,0, "square"))
-        table.insert(trayButtons, makeRaidMarkFrame(6,0, "cross"))
-        table.insert(trayButtons, makeRaidMarkFrame(7,0, "skull"))
+        trayButtons["star"] = makeRaidMarkFrame("star")
+        trayButtons["circle"] = makeRaidMarkFrame("circle")
+        trayButtons["diamond"] = makeRaidMarkFrame("diamond")
+        trayButtons["triangle"] = makeRaidMarkFrame("triangle")
+        trayButtons["moon"] = makeRaidMarkFrame("moon")
+        trayButtons["square"] = makeRaidMarkFrame("square")
+        trayButtons["cross"] = makeRaidMarkFrame("cross")
+        trayButtons["skull"] = makeRaidMarkFrame("skull")
 
         local gui = {}
 
+        gui.setButtonPosition = function(aRaidMarkName, aX, aY)
+            trayButtons[aRaidMarkName].setPosition(aX, aY)
+
+            sorgis_raid_marks.iconPositions = sorgis_raid_marks.iconPositions or {}
+            sorgis_raid_marks.iconPositions[aRaidMarkName] = sorgis_raid_marks.iconPositions[aRaidMarkName] or {}
+
+            sorgis_raid_marks.iconPositions[aRaidMarkName].x = aX
+            sorgis_raid_marks.iconPositions[aRaidMarkName].y = aY
+        end
+
+        gui.getButtonPosition = function(aRaidMarkName)
+            return trayButtons[aRaidMarkName].getPosition()
+        end
+
         gui.getScale = function()
-            return trayButtons[1].getScale()
+            return trayButtons["star"].getScale()
         end
         gui.setScale = function(aScale)
             for _, button in pairs(trayButtons) do
@@ -615,6 +642,8 @@ do
             w = rootFrame:GetParent():GetWidth()
             h = rootFrame:GetParent():GetHeight()
             gui.setPosition(w/2,h/2*-1)
+
+            gui.setTargetCountIsEnabled(true)
         end
 
         gui.setTargetCountIsEnabled = function(aEnabled)
@@ -643,6 +672,17 @@ do
                     h = rootFrame:GetParent():GetHeight()
                     gui.setPosition(w/2,h/2*-1)
                 end
+
+                do
+                    sorgis_raid_marks.iconPositions = sorgis_raid_marks.iconPositions or {}
+                    local i = 0
+                    for k, v in trayButtons do
+                        sorgis_raid_marks.iconPositions[k] = sorgis_raid_marks.iconPositions[k] or {}
+                        gui.setButtonPosition(k, sorgis_raid_marks.iconPositions[k].x or i, sorgis_raid_marks.iconPositions[k].y or 0)
+                        i = i + 1
+                    end
+                end
+
             end
         end)
 
@@ -713,6 +753,23 @@ do
                 srm.print("raidmark counters disabled")
             end
         },
+        ["moveicon"] = {
+            "check or set the position of a raid icon in the UI",
+            function(aRaidMarkName, aX, aY)
+                if aRaidMarkName then
+                    if aX and aY then
+                        gui.setButtonPosition(aRaidMarkName, tonumber(aX), tonumber(aY))
+                        return
+                    end
+
+                    local x, y = gui.getButtonPosition(aRaidMarkName)
+                    srm.print(tostring(aRaidMarkName) .. " position is ", x, ", ", y)
+                    return
+                end
+
+                srm.print("usage example: ", _G.SLASH_SRAIDMARKS1, " moveicon skull 1 3")
+            end
+        }
     }
      
     srm.makeSlashCommand("sraidmarks", function(msg)
