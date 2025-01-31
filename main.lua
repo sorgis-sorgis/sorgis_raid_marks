@@ -6,6 +6,7 @@
 ---------------------
 -- IMPLEMENTATION
 ---------------------
+local _G = getfenv(0)
 local srm = {}
 
 do
@@ -46,6 +47,9 @@ srm.playerIsLeadOrAssist = function()
 end
 
 srm.unitHasRaidMark = function(aUnitID, aMark)
+    --GetRaidTargetIndex incorrectly returns 1 (star) if the unit doesn't exist
+    if not srm.unitExists(aUnitID) then return false end
+
     local unitMark = ({
         [1] = "star",
         [2] = "circle",
@@ -169,47 +173,87 @@ do
         [8] = "pettargettarget",
     }
 
-    local RAID_UNIT_IDS = (function()
-        local units = {}
-        
-        for i = 1, 40 do table.insert(units, "raid" .. i) end
-        for i = 1, 40 do table.insert(units, "raid" .. i .. "target") end
-        for i = 1, 40 do table.insert(units, "raid" .. i .. "targettarget") end
-        for i = 1, 40 do table.insert(units, "raidpet" .. i) end
-        for i = 1, 40 do table.insert(units, "raidpet" .. i .. "target") end
-        for i = 1, 40 do table.insert(units, "raidpet" .. i .. "targettarget") end
-
-        return units
-    end)()
-
-    local PARTY_UNIT_IDS = (function()
-        local units = {}
-
-        for i = 1, 5 do table.insert(units, "party" .. i) end
-        for i = 1, 5 do table.insert(units, "party" .. i .. "target") end
-        for i = 1, 5 do table.insert(units, "party" .. i .. "targettarget") end
-        for i = 1, 5 do table.insert(units, "partypet" .. i) end
-        for i = 1, 5 do table.insert(units, "partypet" .. i .. "target") end
-        for i = 1, 5 do table.insert(units, "partypet" .. i .. "targettarget") end
-        
-        return units
-    end)()
-
-    srm.visitUnitIDs = function(aVisitor)
-        for _, aUnitID in pairs(PLAYER_UNIT_IDS) do
-            if aVisitor(aUnitID) == true then return true end
-        end
-
-        for _, aUnitID in pairs(srm.playerIsInRaid() and RAID_UNIT_IDS or 
-            srm.playerIsInParty() and PARTY_UNIT_IDS or {}) do
+    local visitUnitIDs = function(aVisitor, aUnitIdList)
+        for _, aUnitID in pairs(aUnitIdList) do
             if aVisitor(aUnitID) == true then return true end
         end
 
         return false
     end
 
+    do
+        local ALL_RAID_UNIT_IDS = (function()
+            local unitIDs = {}
+            for i = 1, 40 do table.insert(unitIDs, "raid" .. i) end
+            for i = 1, 40 do table.insert(unitIDs, "raid" .. i .. "target") end
+            for i = 1, 40 do table.insert(unitIDs, "raid" .. i .. "targettarget") end
+            for i = 1, 40 do table.insert(unitIDs, "raidpet" .. i) end
+            for i = 1, 40 do table.insert(unitIDs, "raidpet" .. i .. "target") end
+            for i = 1, 40 do table.insert(unitIDs, "raidpet" .. i .. "targettarget") end
+
+            return unitIDs
+        end)()
+
+        local ALL_PARTY_UNIT_IDS = (function()
+            local unitIDs = {}
+            table.insert(unitIDs, "player")
+            for i = 1, 4 do table.insert(unitIDs, "party" .. i) end
+            for i = 1, 4 do table.insert(unitIDs, "party" .. i .. "target") end
+            for i = 1, 4 do table.insert(unitIDs, "party" .. i .. "targettarget") end
+            for i = 1, 4 do table.insert(unitIDs, "partypet" .. i) end
+            for i = 1, 4 do table.insert(unitIDs, "partypet" .. i .. "target") end
+            for i = 1, 4 do table.insert(unitIDs, "partypet" .. i .. "targettarget") end
+            
+            return unitIDs
+        end)()
+
+        srm.visitAllUnitIDs = function(aVisitor)
+            if 
+                visitUnitIDs(aVisitor, PLAYER_UNIT_IDS) == true or
+                visitUnitIDs(aVisitor, 
+                    srm.playerIsInRaid() and ALL_RAID_UNIT_IDS or 
+                    srm.playerIsInParty() and ALL_PARTY_UNIT_IDS or 
+                    {}) == true 
+            then 
+                return true 
+            end
+
+            return false
+        end
+    end
+
+    do
+        local RAID_MEMBER_TARGET_UNIT_IDS = (function()
+            local unitIDs = {}
+            for i = 1, 40 do table.insert(unitIDs, "raid" .. i .. "target") end
+
+            return unitIDs
+        end)();
+
+        local PARTY_MEMBER_TARGET_UNIT_IDS = (function()
+            local unitIDs = {}
+            for i = 1, 4 do table.insert(unitIDs, "party" .. i .. "target") end
+            table.insert(unitIDs, "playertarget")
+
+            return unitIDs
+        end)();
+
+        srm.visitGroupMemberTargetIDs = function(aVisitor)
+            local units = 
+                srm.playerIsInRaid() and RAID_MEMBER_TARGET_UNIT_IDS or
+                srm.playerIsInParty() and PARTY_MEMBER_TARGET_UNIT_IDS or
+                {}
+
+            for _, unitID in pairs(units) do
+                if aVisitor(unitID) == true then return true end
+            end 
+
+            return false
+        end
+    end
+
     srm.tryTargetUnitWithRaidMarkFromGroupMembers = function(aMark)
-        return srm.visitUnitIDs(function(aUnitID)
+        return srm.visitAllUnitIDs(function(aUnitID)
             if srm.unitHasRaidMark(aUnitID, aMark) and srm.unitIsAlive(aUnitID) then
                 TargetUnit(aUnitID)   
                 return true
@@ -412,6 +456,32 @@ do
 
             local raidMark = {}
 
+            local fsCount = frame:CreateFontString(nil, "OVERLAY", "GameTooltipText")
+            do
+                raidMark.setTargetCountIsEnabled = function(aIsEnabled)
+                    if aIsEnabled then 
+                        frame:SetScript("OnUpdate", function() 
+                            local markTargetCount = 0
+                            
+                            srm.visitGroupMemberTargetIDs(function(aUnitID) 
+                                if srm.unitHasRaidMark(aUnitID, aMark) then
+                                    markTargetCount = markTargetCount + 1
+                                end
+                            end)
+
+                            if markTargetCount > 0 then
+                                fsCount:Show()
+                                fsCount:SetText(tostring(markTargetCount))
+                            else
+                                fsCount:Hide()
+                            end
+                        end)
+                    else
+                        frame:SetScript("OnUpdate", nil)
+                        fsCount:Hide()
+                    end
+                end
+            end
             frame:RegisterForDrag("LeftButton")
             frame:SetMovable(true)
             frame:SetScript("OnDragStart", function()
@@ -451,8 +521,12 @@ do
                 frame:SetWidth(aScale) 
                 frame:SetHeight(aScale)
                 frame:SetPoint("CENTER", aX * aScale, aY * aScale)
+
                 raidMarkTexture:SetWidth(aScale)
                 raidMarkTexture:SetHeight(aScale)
+
+                fsCount:SetFont("Fonts\\FRIZQT__.TTF", aScale * 0.5, "OUTLINE, THICK")
+                fsCount:SetPoint("BOTTOMRIGHT", aScale * 0.0, aScale * -0.1)
             end
             raidMark.getScale = function(aScale)
                 return frame:GetWidth()
@@ -543,6 +617,14 @@ do
             gui.setPosition(w/2,h/2*-1)
         end
 
+        gui.setTargetCountIsEnabled = function(aEnabled)
+            for _, button in pairs(trayButtons) do
+                button.setTargetCountIsEnabled(aEnabled)
+            end
+
+             sorgis_raid_marks.targetCountIsEnabled = aEnabled
+        end
+
         rootFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
         rootFrame:SetScript("OnEvent", function()
             if event == "PLAYER_ENTERING_WORLD" then
@@ -552,6 +634,7 @@ do
                 gui.setScale(sorgis_raid_marks.scale or 32)
                 gui.setVisibility(sorgis_raid_marks.visibility == nil or sorgis_raid_marks.visibility)
                 gui.setMovable(sorgis_raid_marks.locked ~= true)
+                gui.setTargetCountIsEnabled(sorgis_raid_marks.targetCountIsEnabled ~= nil and sorgis_raid_marks.targetCountIsEnabled)
 
                 if type(sorgis_raid_marks.position[1]) == "number" then
                     gui.setPosition(unpack(sorgis_raid_marks.position))
@@ -614,6 +697,22 @@ do
                 srm.print("scale is: ", gui.getScale())
             end
         },
+        ["enablecounter"] = {
+            "tracks and displays the number of group members targeting each raid mark in the UI",
+            function()
+                gui.setTargetCountIsEnabled(true)
+
+                srm.print("raidmark counters enabled")
+            end
+        },
+        ["disablecounter"] = {
+            "does not track or display the number of group members targeting each raid mark in the UI",
+            function()
+                gui.setTargetCountIsEnabled(false)
+                
+                srm.print("raidmark counters disabled")
+            end
+        },
     }
      
     srm.makeSlashCommand("sraidmarks", function(msg)
@@ -626,13 +725,12 @@ do
         local commandName = table.remove(arg, 1);
 
         (commands[commandName] and commands[commandName][2] or function()
-            local commandsString = ""
             for command, value in pairs(commands) do
+                local commandsString = ""
                 commandsString = commandsString .. "`" .. _G.SLASH_SRAIDMARKS1 .. " " .. command ..
                 "` : " .. value[1] .. "\n"
+                srm.print(commandsString)
             end 
-
-            srm.print(commandsString)
         end)(unpack(arg))
     end)
 end
