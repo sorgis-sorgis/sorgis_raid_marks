@@ -68,8 +68,8 @@ removes the raid mark assigned to the player's target
 `/clearmark {unitid}`
 removes the raid mark assigned to a unit by *unitid*
 
-### clear all marks
-`clearallmarks`
+### clear marks
+`clearmarks`
 unassigns all raid marks
 
 ## Bindings
