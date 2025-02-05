@@ -576,7 +576,9 @@ do
         end
 
         gui.getScale = function()
-            return trayButtons["star"].getScale()
+            for _, v in trayButtons do
+                return v.getScale()
+            end
         end
         gui.setScale = function(aScale)
             for _, button in pairs(trayButtons) do
@@ -674,11 +676,24 @@ do
                 end
 
                 do
+                    local DEFAULT_RAID_MARK_POSITIONS = {
+                        skull    = 0,
+                        cross    = 1,
+                        moon     = 2,
+                        star     = 3,
+                        triangle = 4,
+                        circle   = 5,
+                        square   = 6,
+                        diamond  = 7,
+                    }
+
                     sorgis_raid_marks.iconPositions = sorgis_raid_marks.iconPositions or {}
                     local i = 0
                     for k, v in trayButtons do
                         sorgis_raid_marks.iconPositions[k] = sorgis_raid_marks.iconPositions[k] or {}
-                        gui.setButtonPosition(k, sorgis_raid_marks.iconPositions[k].x or i, sorgis_raid_marks.iconPositions[k].y or 0)
+                        gui.setButtonPosition(k, 
+                            sorgis_raid_marks.iconPositions[k].x or DEFAULT_RAID_MARK_POSITIONS, 
+                            sorgis_raid_marks.iconPositions[k].y or 0)
                         i = i + 1
                     end
                 end
