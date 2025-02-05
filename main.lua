@@ -649,6 +649,7 @@ do
         end
 
         gui.setTargetCountIsEnabled = function(aEnabled)
+            srm.log("isEnabled: " .. tostring(aEnabled))
             for _, button in pairs(trayButtons) do
                 button.setTargetCountIsEnabled(aEnabled)
             end
@@ -665,7 +666,7 @@ do
                 gui.setScale(sorgis_raid_marks.scale or 32)
                 gui.setVisibility(sorgis_raid_marks.visibility == nil or sorgis_raid_marks.visibility)
                 gui.setMovable(sorgis_raid_marks.locked ~= true)
-                gui.setTargetCountIsEnabled(sorgis_raid_marks.targetCountIsEnabled ~= nil and sorgis_raid_marks.targetCountIsEnabled)
+                gui.setTargetCountIsEnabled(sorgis_raid_marks.targetCountIsEnabled == nil or sorgis_raid_marks.targetCountIsEnabled)
 
                 if type(sorgis_raid_marks.position[1]) == "number" then
                     gui.setPosition(unpack(sorgis_raid_marks.position))
