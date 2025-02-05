@@ -402,7 +402,7 @@ srm.makeSlashCommand("clearmark", function(msg)
     srm.clearMarkFromUnit(unitID)
 end)
 
-srm.makeSlashCommand("clearallmarks", function()
+srm.makeSlashCommand("clearmarks", function()
     srm.clearAllMarks()
 end)
 
