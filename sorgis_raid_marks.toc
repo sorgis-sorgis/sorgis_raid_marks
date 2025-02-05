@@ -1,7 +1,7 @@
 ## Interface: 11200
 ## Title: sorgis raid marks
 ## Author: https://github.com/sorgis-sorgis
-## Version: 1.1.1
+## Version: 1.2.0
 ## Notes: raid marker targeting & assignment slash commands, bindings and GUI.
 ## SavedVariablesPerCharacter: sorgis_raid_marks
 main.lua

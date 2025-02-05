@@ -75,11 +75,22 @@ unassigns all raid marks
 ## Bindings
 keys can be bound to target specific raid marks in the key binding menu, under the Sorgis Raid Marks heading.
 
-## Targeting Tray UI
+## UI
 The addon adds a list of raid icons to the user interface:
 - Left click an icon to try to target the corresponding mark.
 - Right click an icon to try to target and auto attack the mark.
 - Left click + control to mark the current target with the corresponding mark.
 - Move the tray by holding left click on any icon and dragging the mouse.
-- Use `/sraidmarks` to configure the UI. From here you can resize the icons, lock it in place or hide it.
-- If you drag the tray off your screen, run `/sraidmarks reset`.
+
+## Configuration
+- Use `/sraidmarks` to list all options.
+- `/sraidmarks lock` prevents the user from moving the UI
+- `/sraidmarks unlock` allows the user to move the UI by left click + dragging an icon
+- `/sraidmarks hide` hides the UI from the screen
+- `/sraidmarks show` shows the UI on screen if it was hidden
+- `/sraidmarks reset` sets UI default values.
+- `/sraidmarks scale {VALUE}` set or check the size of the UI.
+- `/sraidmarks enablecounter` each raid icon in the UI will show the number of raid/party members targeting the marked unit
+- `/sraidmarks disablecounter` disables the per icon target counter
+- `/sraidmarks seticon {MARK NAME} {X} {Y}` sets the position of the named raid icon in the UI. example: `/sraidmarks seticon skull 2 4`. X and Y must be postive whole numbers. unit length/height is equal to the length/height of a single icon.
+
