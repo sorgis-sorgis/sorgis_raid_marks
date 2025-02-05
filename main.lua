@@ -688,13 +688,11 @@ do
                     }
 
                     sorgis_raid_marks.iconPositions = sorgis_raid_marks.iconPositions or {}
-                    local i = 0
                     for k, v in trayButtons do
                         sorgis_raid_marks.iconPositions[k] = sorgis_raid_marks.iconPositions[k] or {}
                         gui.setButtonPosition(k, 
-                            sorgis_raid_marks.iconPositions[k].x or DEFAULT_RAID_MARK_POSITIONS, 
+                            sorgis_raid_marks.iconPositions[k].x or DEFAULT_RAID_MARK_POSITIONS[k], 
                             sorgis_raid_marks.iconPositions[k].y or 0)
-                        i = i + 1
                     end
                 end
 
@@ -768,7 +766,7 @@ do
                 srm.print("raidmark counters disabled")
             end
         },
-        ["moveicon"] = {
+        ["seticon"] = {
             "check or set the position of a raid icon in the UI",
             function(aRaidMarkName, aX, aY)
                 if aRaidMarkName then
@@ -782,7 +780,7 @@ do
                     return
                 end
 
-                srm.print("usage example: ", _G.SLASH_SRAIDMARKS1, " moveicon skull 1 3")
+                srm.print("usage example: ", _G.SLASH_SRAIDMARKS1, " seticon skull 1 3")
             end
         }
     }
