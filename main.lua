@@ -641,8 +641,8 @@ do
             gui.setVisibility(true)
             gui.setScale(32)
        
-            w = rootFrame:GetParent():GetWidth()
-            h = rootFrame:GetParent():GetHeight()
+            local w = rootFrame:GetParent():GetWidth()
+            local h = rootFrame:GetParent():GetHeight()
             gui.setPosition(w/2,h/2*-1)
 
             gui.setTargetCountIsEnabled(true)
@@ -671,8 +671,8 @@ do
                 if type(sorgis_raid_marks.position[1]) == "number" then
                     gui.setPosition(unpack(sorgis_raid_marks.position))
                 else
-                    w = rootFrame:GetParent():GetWidth()
-                    h = rootFrame:GetParent():GetHeight()
+                    local w = rootFrame:GetParent():GetWidth()
+                    local h = rootFrame:GetParent():GetHeight()
                     gui.setPosition(w/2,h/2*-1)
                 end
 
